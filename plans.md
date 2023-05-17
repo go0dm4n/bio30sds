@@ -6,7 +6,7 @@ blob stats
 food eating
 death
 
-reprodection(sex but singlwe player)
+reprodection(single player)
 food spawning
 end screen
 -stats
