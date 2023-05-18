@@ -23,17 +23,39 @@ function draw() {
 
 function spawnFood() {
   for (let i = foodamount; i >= 0; i--) {
-      food = new Sprite(random(0, windowWidth), random(0, windowHeight), 'k'); // make food
+      food = new Sprite(random(200, windowWidth - 200), random(200, windowHeight - 200), 20, 'circle', 'k'); // make food
       theFood.push(food);
   }
 }
 
 function spawnBlob() {
   for (let i = blobamount; i >= 0; i--) {
-    blob = new Sprite(0, random(0, windowHeight), 'd'); // make blob
+    let blobx, bloby;
+    choice = random(0,20);
+
+    if (choice < 5) {
+      blobx = 30; 
+      bloby = random(30,windowHeight - 30);  // left wall
+    }
+    else if (choice < 10) {
+      blobx  = windowWidth - 30; 
+      bloby = random(30,windowHeight - 30); // right wall
+    }
+    else if (choice < 15) {
+      blobx = random(30, windowWidth - 30), 
+      bloby = 30; // top wall
+    }
+    else if (choice < 20) {
+      blobx = random(30, windowWidth - 30); 
+      bloby = windowHeight - 30; // bottom wall
+    }
+
+    blob = new Sprite(blobx, bloby, 'd'); // make blob
+    blob.spawnpoint = (blobx, bloby)
     blob.hunger = 2;
-    blob.speed = random(1, 3);
-    console.log(blob.speed);
+    blob.go = random(1, 3); // speed, cant call it 'move' or 'speed' for some reason
+    console.log(blob.velx)
+
     theBlobs.push(blob);
     for (let k = theFood.length - 1; k >=0; k--) {
       blob.overlaps(theFood[i]);
