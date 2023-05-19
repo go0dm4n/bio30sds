@@ -1,24 +1,150 @@
+//penis 
+
 // biology 30 sds
 // Uday Sandhu & Ben Strawson
 // March 10th, 2023
 
 let theBlobs = [];
 let theFood = [];
+let buttonAR= [];
+
+let gamestate = "title";
+let button;
+let title_font;
+let basic_font;
 
 let day = 0; // time passed since stuff was started
-let foodamount = 20;
-let blobamount = 15;
+let foodamount = 5;
+let blobamount = 5;
+
+
+function preload(){
+  title_font = loadFont("EVOFONT.ttf");
+  basic_font = loadFont("Minimal Performance.ttf")
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  spawnFood()
-  spawnBlob()
+
+  button = new Button(windowWidth/2,windowHeight/3*2,200,100,"red","blue", "game1", "title","Start",title_font);//start
+  buttonAR.push(button);
+  button = new Button(windowWidth/3,windowHeight/5*3,50,50,"red","blue","+blob","title","+",basic_font);//
+  buttonAR.push(button);
+  button = new Button(windowWidth/3,windowHeight/5*4,50,50,"red","blue","-blob","title","-",basic_font);//
+  buttonAR.push(button);
+  button = new Button(windowWidth/3*2,windowHeight/5*3,50,50,"red","blue","+food","title","+",basic_font);//
+  buttonAR.push(button);
+  button = new Button(windowWidth/3*2,windowHeight/5*4,50,50,"red","blue","-food","title","-",basic_font);//
+  buttonAR.push(button);
+
+
 }
 
 function draw() {
   background(225);
+  buttonsupdate();
+  changeValues();
+  if (gamestate === "title"){
+    draw_Title();
+  }
+  if (gamestate === "game"){
   nextDay();
   eatFood();
+  }
+}
+
+function mousePressed(){
+  for(let i = buttonAR.length-1; i >= 0; i --){//clicks buttons
+    buttonAR[i].clicked();
+  }
+}
+
+function draw_Title(){
+  textFont(title_font);
+  text("working title", windowWidth/2, 40)
+  textAlign(CENTER,CENTER);
+  textFont(basic_font);
+  text(blobamount + " Blobs",windowWidth/3,windowHeight/10*7);
+  text(foodamount + " Foods",windowWidth/3*2,windowHeight/10*7);
+  
+}
+function changeValues(){
+  if (gamestate === "+blob"){
+    if(blobamount < 99){
+    blobamount+=5
+    }
+    gamestate = "title"
+  }
+  if (gamestate === "-blob"){
+    if(blobamount > 6){
+    blobamount-=5
+    }
+    gamestate = "title"
+  }
+  if (gamestate === "+food"){
+    if (foodamount < 99){
+    foodamount+=5
+    }
+    gamestate = "title"
+  }
+  if (gamestate === "-food"){
+    if (foodamount > 6){
+    foodamount-=5
+    }
+    gamestate = "title"
+  }
+  if (gamestate === "game1"){//for game start
+    spawnFood();
+    spawnBlob();
+    gamestate = "game"
+  }
+}
+
+
+class Button{// button class
+  constructor(x,y,width,height,color1,color2,state,display,text,font){
+    this.x = x-width/2;
+    this.y = y-height/2;
+    this.width = width;
+    this.height = height;
+    this.color1 = color1;
+    this.color2 = color2;
+    this.state = state;
+    this.displayState = display;
+    this.text = text;
+    this.font = font;
+  }
+
+  display(){
+    if (gamestate === this.displayState){//diplays buttons
+      if (mouseX > this.x && mouseX < this.x +this.width && mouseY > this.y && mouseY < this.y + this.height){
+        fill(this.color1);
+      }
+      else {
+        fill(this.color2);
+      }
+      ellipse(this.x + this.width/2,this.y + this.height/2,this.width,this.height);
+      textFont(this.font);
+      fill("black");
+      textSize(40);
+      text(this.text,this.x+this.width/2,this.y+this.height/2);
+    }
+  }
+
+  clicked(){//when mouse is pressed checks to see if mouse is on the button andnif the gamestate is in the correct state
+    if (gamestate === this.displayState){
+      if (mouseX > this.x && mouseX < this.x +this.width && mouseY > this.y && mouseY < this.y + this.height && mouseIsPressed){
+        gamestate = this.state;
+      }
+    }
+  }
+}
+
+  
+function buttonsupdate(){// displays buttons
+  for(let i = buttonAR.length-1; i >= 0; i --){
+    buttonAR[i].display();
+  }
 }
 
 function spawnFood() {
