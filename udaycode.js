@@ -77,25 +77,25 @@ function draw_Title(){
 function changeValues(){
   if (gamestate === "+blob"){
     if(blobamount < 99){
-    blobamount+=5
+      blobamount+=5
     }
     gamestate = "title"
   }
   if (gamestate === "-blob"){
     if(blobamount > 6){
-    blobamount-=5
+      blobamount-=5
     }
     gamestate = "title"
   }
   if (gamestate === "+food"){
     if (foodamount < 99){
-    foodamount+=5
+      foodamount+=5
     }
     gamestate = "title"
   }
   if (gamestate === "-food"){
     if (foodamount > 6){
-    foodamount-=5
+      foodamount-=5;
     }
     gamestate = "title"
   }
@@ -155,7 +155,8 @@ function buttonsupdate(){ // displays buttons
 
 function spawnFood() { // make food around the place
   for (let i = foodamount; i >= 0; i--) {
-      food = new Sprite(random(200, windowWidth - 200), random(200, windowHeight - 200), 20, 'circle', 'k'); // make food
+      food = new Sprite(random(400, windowWidth - 400), random(400, windowHeight - 400), 20, 'circle', 'd'); // make food
+      food.color = 'blue'
       theFood.push(food);
   }
 }
@@ -185,10 +186,12 @@ function spawnBlob() {
       bloby = windowHeight - 30; // bottom wall
     }
 
-    blob = new Sprite(blobx, bloby, 'd'); // make blob
-    blob.spawnpoint = blobx, bloby
+    blob = new Sprite(blobx, bloby, 'k'); // make blob
+    blob.spawnx = blobx;
+    blob.spawny = bloby;
     blob.hunger = 2;
-    blob.go = random(1, 3); // speed, cant call it 'move' or 'speed' for some reason
+    blob.go = random(1, 1.5); // speed, cant call it 'move' or 'speed' for some reason
+    blob.color = (255, 0, 0, 255) // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
 
     theBlobs.push(blob);
     for (let k = theFood.length - 1; k >=0; k--) {
@@ -204,6 +207,9 @@ function eatFood() {
             theFood[k].remove();
             theFood.splice(k, 1);
             theBlobs[i].hunger -= 1;
+            findFood(theBlobs[i]);
+            theBlobs[i].vel.x === 0;
+            theBlobs[i].vel.y === 0;
           }
       }
   }
@@ -213,8 +219,9 @@ function nextDay() {
   if (theFood.length === 0) { // they run outta food
     day += 1
     pushData(); // pushes population data into list
-    resetBlob(); // move to starting positions
     checkHunger(); // checks if blobs still hungry
+    resetBlob(); // move to starting positions
+    spawnFood();
   }
 }
 
@@ -223,7 +230,6 @@ function findFood(blob) {
     if (k === theFood.length - 1) { // set an inital blob to compare other blobs too
       closestfood = theFood[k];
     }
-
     if (dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y)) {
       closestfood = theFood[k];
     }
@@ -233,18 +239,15 @@ function findFood(blob) {
 
 function movetoFood() {
   for (let i = theBlobs.length - 1; i >= 0; i--) {
-    if(theBlobs[i].vel.x === 0 && theBlobs[i].vel.y === 0 || !theBlobs[i].target) { // if blob not moving
-      theBlobs[i].target = findFood(theBlobs[i]) // find closest blob
-      theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
-    }
+    theBlobs[i].target = findFood(theBlobs[i]) // find closest blob
+    theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
+    line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
   }
 }
 
 function checkHunger() {
   for (let i = theBlobs.length - 1; i >= 0; i--) {
-    console.log(theBlobs[i].hunger);
-
-    if (theBlobs[i].hunger === 0) { // if blob is really full, blob will reproduce
+    if (theBlobs[i].hunger <= 0) { // if blob is really full, blob will reproduce
       blobReproduce(theBlobs[i]);
     }
     
@@ -257,8 +260,11 @@ function checkHunger() {
 
 function resetBlob() { // put blobs back to where they spawned at end of day
   for (let i = theBlobs.length - 1; i >=0; i--) {
-    theBlobs[i].x, theBlobs[i].y = theBlobs[i].spawnpoint;
-    theBlobs[i].vel.x, theBlobs[i].vel.y = 0, 0;
+    theBlobs[i].x = theBlobs[i].spawnx; // reset place
+    theBlobs[i].y = theBlobs[i].spawny;
+    theBlobs[i].vel.x = 0; //stop moving
+    theBlobs[i].vel.y = 0;
+    theBlobs[i].hunger = 2; // make hungry again
   }
 }
 
@@ -269,7 +275,7 @@ function blobReproduce(blob) {
 function drawUI() { // draws misc game stuff
   textSize(20);
   text("day:" + day, 50, 20);
-  text("population:" + (theBlobs.length - 1), 105, 50);
+  text("population:" + (theBlobs.length), 105, 50);
 }
 
 function pushData() {
