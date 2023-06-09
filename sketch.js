@@ -224,7 +224,10 @@ function spawnBlob() {
     blob.spawnx = blobx;
     blob.spawny = bloby;
     blob.hunger = 2;
+
     blob.go = random(1, 1.5); // speed, cant call it 'move' or 'speed' for some reason
+    blob.sense = random(250, 400);
+
     blob.color = (255, 0, 0, 255) // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
 
     theBlobs.push(blob);
@@ -260,13 +263,21 @@ function nextDay() {
 }
 
 function findFood(blob) {
+  let closestfood;
   for (let k = theFood.length - 1; k >= 0; k--) {
-    if (k === theFood.length - 1) { // set an inital blob to compare other blobs too
-      closestfood = theFood[k];
+    if(blob.vel.x === 0 && blob.vel.y === 0) {
+      randomMove(blob);
+      closestfood = "nope";
     }
-    if (dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y)) {
-      closestfood = theFood[k];
+
+    
+    
+    else if (blob.target !== "nope") {
+      if(dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y) 
+      && dist(blob.x, blob.y, closestfood.x, closestfood.y) <= blob.sense) {
+        closestfood = theFood[k];
     }
+    }  
   }
   return closestfood;
 }
@@ -274,8 +285,24 @@ function findFood(blob) {
 function movetoFood() {
   for (let i = theBlobs.length - 1; i >= 0; i--) {
     theBlobs[i].target = findFood(theBlobs[i]) // find closest blob
-    theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
-    line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
+    console.log(theBlobs[i].target, i)
+    if(theBlobs[i].target !== "nope") {
+      theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
+      line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
+      fill(200, 200, 200, 100);
+      circle(theBlobs[i].x, theBlobs[i].y, theBlobs[i].sense);
+    }
+  }
+}
+
+function randomMove(blob){
+  newx = blob.x + random(-100, 100);
+  newy = blob.y + random(-100, 100);
+  if(newx > width || newy > height || newx < 0 || newy < 0) {
+    blob.moveTowards(newx, newy, blob.go / dist(blob.x, blob.y, newx, newy));
+  }
+  else {
+    randomMove(blob);
   }
 }
 
