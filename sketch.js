@@ -22,6 +22,8 @@ let Dna;
 let day = 0; // time passed since stuff was started
 let foodamount = 5;
 let blobamount = 5;
+let sensey = 200
+
 
 
 function preload(){
@@ -69,6 +71,7 @@ function draw() {
     drawUI(); // draws general game menu stuff
     movetoFood(); // makes blobs move towards food
     eatFood(); // checks if blobs and food collided
+    spawnnums();
   }
 
 }
@@ -196,7 +199,7 @@ function spawnFood() { // make food around the place
 }
 
 function spawnBlob() {
-  for (let i = blobamount; i >= 0; i--) {
+  for (let i = blobamount; i > 0; i--) {
     let blobx, bloby;
     choice = random(0,20);
 
@@ -225,11 +228,11 @@ function spawnBlob() {
     blob.spawny = bloby;
     blob.hunger = 2;
 
-    blob.go = random(1, 1.5); // speed, cant call it 'move' or 'speed' for some reason
-    blob.sense = random(250, 400);
+    blob.go = random(4, 6); // speed, cant call it 'move' or 'speed' for some reason
+    blob.sense = sensey
 
     blob.color = (255, 0, 0, 255) // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
-
+    randomMove(blob)
     theBlobs.push(blob);
     for (let k = theFood.length - 1; k >=0; k--) {
       blob.overlaps(theFood[k]);
@@ -247,6 +250,7 @@ function eatFood() {
             findFood(theBlobs[i]);
             theBlobs[i].vel.x === 0;
             theBlobs[i].vel.y === 0;
+            randomMove(theBlobs[i])
           }
       }
   }
@@ -254,56 +258,71 @@ function eatFood() {
 
 function nextDay() {
   if (theFood.length === 0) { // they run outta food
-    day += 1
     pushData(); // pushes population data into list
+    day += 1
     checkHunger(); // checks if blobs still hungry
     resetBlob(); // move to starting positions
     spawnFood();
+    doAverage();
   }
 }
 
 function findFood(blob) {
-  let closestfood;
+  let closestfood = "nope";
   for (let k = theFood.length - 1; k >= 0; k--) {
-    if(blob.vel.x === 0 && blob.vel.y === 0) {
-      randomMove(blob);
-      closestfood = "nope";
-    }
+    if (dist(blob.x,blob.y,theFood[k].x,theFood[k].y) <= blob.sense){
+      //console.log("balls")
+      if(closestfood === "nope"){
 
-    
-    
-    else if (blob.target !== "nope") {
-      if(dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y) 
-      && dist(blob.x, blob.y, closestfood.x, closestfood.y) <= blob.sense) {
         closestfood = theFood[k];
+        blob.target= theFood[k];
+        blob.targetType = "food"
+
+      }
+      else if (dist(blob.x,blob.y,theFood[k].x,theFood[k].y) < dist(blob.x,blob.y,closestfood.x,closestfood.y)){
+        closestfood = theFood[k];
+        blob.target= theFood[k];
+        blob.targetType = "food"
+      }
     }
-    }  
+ 
+
+      
+
+
+      // if(dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y) 
+      // && dist(blob.x, blob.y, closestfood.x, closestfood.y) <= blob.sense) {
+      //   closestfood = theFood[k];
+    
   }
-  return closestfood;
 }
 
 function movetoFood() {
-  for (let i = theBlobs.length - 1; i >= 0; i--) {
-    theBlobs[i].target = findFood(theBlobs[i]) // find closest blob
-    console.log(theBlobs[i].target, i)
+  for (let i = theBlobs.length -1; i >= 0; i--) {
+    fill(200, 200, 200, 100);
+    circle(theBlobs[i].x, theBlobs[i].y, theBlobs[i].sense*2);
+    findFood(theBlobs[i]) // find closest blob
+    //console.log(theBlobs[i].target, i)
     if(theBlobs[i].target !== "nope") {
+      if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
+        //console.log("ass")
+        randomMove(theBlobs[i])
+      }
       theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
       line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
       fill(200, 200, 200, 100);
-      circle(theBlobs[i].x, theBlobs[i].y, theBlobs[i].sense);
     }
   }
 }
 
-function randomMove(blob){
-  newx = blob.x + random(-100, 100);
-  newy = blob.y + random(-100, 100);
-  if(newx > width || newy > height || newx < 0 || newy < 0) {
-    blob.moveTowards(newx, newy, blob.go / dist(blob.x, blob.y, newx, newy));
-  }
-  else {
-    randomMove(blob);
-  }
+function randomMove(blob) {
+  let target = {
+    x: random(0, windowWidth),
+    y: random(0, windowHeight)
+  };
+  //console.log(target.x)
+  blob.target = target;
+  blob.targetType = "ran"
 }
 
 function checkHunger() {
@@ -326,8 +345,18 @@ function resetBlob() { // put blobs back to where they spawned at end of day
     theBlobs[i].vel.x = 0; //stop moving
     theBlobs[i].vel.y = 0;
     theBlobs[i].hunger = 2; // make hungry again
+    randomMove(theBlobs[i])
   }
 }
+
+function doAverage(){
+  let average = 0
+  for (let i = theBlobs.length - 1; i >= 0; i--) {
+    average += theBlobs[i].go 
+  }
+  console.log( average /(theBlobs.length-1));
+}
+
 
 function blobReproduce(blob) {
   let blobx, bloby;
@@ -354,14 +383,21 @@ function blobReproduce(blob) {
   }
 
   new_blob = new Sprite(blobx, bloby, 'k'); // make blob
-  new_blob.go = blob.go + random(-0.3,0.3);    
+  new_blob.go = blob.go + random(-1,1);
+  if (blob.go > 10){
+    blob.go =10
+  }   
+  if (blob.go < 0){
+    blob.go = 0.1
+  }  
   new_blob.spawnx = blobx;
   new_blob.spawny = bloby;
   new_blob.hunger = 2;
+  new_blob.sense = sensey
   new_blob.color = color(blob.go*255,0,0); // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
   theBlobs.push(new_blob);
 
-  console.log("sex!");
+  //console.log("sex!");
 }
 
 function drawUI() { // draws misc game stuff
@@ -371,5 +407,16 @@ function drawUI() { // draws misc game stuff
 }
 
 function pushData() {
+  // for (let i = theBlobs.length - 1; i >=0; i--) {
+  //   blobdata[day].push(theBlobs[i].go)
+  // }
+}
 
+function spawnnums(){
+  for (let i = theBlobs.length - 1; i >= 0; i--) {
+    fill("black")
+    textAlign(LEFT,CENTER)
+    textSize(10)
+    text(round(theBlobs[i].go,2),theBlobs[i].x+30,theBlobs[i].y)
+  }
 }
