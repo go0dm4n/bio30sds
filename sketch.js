@@ -354,7 +354,7 @@ function blobReproduce(blob) {
   }
 
   new_blob = new Sprite(blobx, bloby, 'k'); // make blob
-  new_blob.go = blob.go + random(-0.1,0.1);    
+  new_blob.go = blob.go + random(-0.3,0.3);    
   new_blob.spawnx = blobx;
   new_blob.spawny = bloby;
   new_blob.hunger = 2;
