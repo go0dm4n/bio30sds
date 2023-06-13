@@ -258,12 +258,13 @@ function eatFood() {
 
 function nextDay() {
   if (theFood.length === 0) { // they run outta food
+    doAverage();
     pushData(); // pushes population data into list
     day += 1
     checkHunger(); // checks if blobs still hungry
     resetBlob(); // move to starting positions
     spawnFood();
-    doAverage();
+    
   }
 }
 
@@ -352,9 +353,10 @@ function resetBlob() { // put blobs back to where they spawned at end of day
 function doAverage(){
   let average = 0
   for (let i = theBlobs.length - 1; i >= 0; i--) {
-    average += theBlobs[i].go 
+    average += round(theBlobs[i].go,2)
   }
-  console.log( average /(theBlobs.length-1));
+  average = average/ theBlobs.length/1
+  console.log( average );
 }
 
 
@@ -407,9 +409,12 @@ function drawUI() { // draws misc game stuff
 }
 
 function pushData() {
-  // for (let i = theBlobs.length - 1; i >=0; i--) {
-  //   blobdata[day].push(theBlobs[i].go)
-  // }
+  let temp = []
+    temp.push(day)
+   for (let i = theBlobs.length - 1; i >=0; i--) {
+     temp.push(round(theBlobs[i].go,2))
+   }
+   blobdata.push(temp)
 }
 
 function spawnnums(){
