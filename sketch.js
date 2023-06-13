@@ -9,6 +9,8 @@ let theFood = [];
 let buttonAR= [];
 
 let blobdata = [];
+let average_speed = []
+let final_pop = []
 
 let gamestate = "title";
 let button;
@@ -52,6 +54,8 @@ function setup() {
   buttonAR.push(button);
   button = new Button(windowWidth-60, windowHeight-60,60,60,"blue","red","info","title","i",basic_font);
   buttonAR.push(button);
+  button = new Button(windowWidth-60, windowHeight-90,90,90,"blue","red","end","game","stop",basic_font);
+  buttonAR.push(button);
 }
 
 function draw() {
@@ -73,7 +77,11 @@ function draw() {
     eatFood(); // checks if blobs and food collided
     spawnnums();
   }
-
+  if (gamestate === "end"){
+    endscreen();
+    theBlobs = [];
+    theFood = [];
+  }
 }
 
 function mousePressed(){
@@ -108,6 +116,112 @@ function info_screen(){
   }
 }
 
+function endscreen(){
+  for (let i = theBlobs.length - 1; i >= 0; i--) {
+    theBlobs[i].visible = false
+  }
+  for (let k = theFood.length - 1; k >= 0; k--){
+    theFood[k].visible = false
+  }
+  display_info()
+}
+
+function display_info(){
+  average_speed = []
+  final_pop = []
+  for (let i = 0 ; i <=  blobdata.length-1; i++) {
+    average_speed.push (doAverage(blobdata[i]))
+    final_pop.push (blobdata[i].length-1)
+  }
+  drawLineGraph_right(average_speed,"Average speed")
+  drawLineGraph_left(final_pop,"popultaion")
+}
+
+function doAverage(data){
+  let average = 0
+  for (let i =1; i  <= data.length-1; i++) {
+    average += data[i]
+  }
+  return (average/(data.length-1))
+}
+
+
+function drawLineGraph_right(data,the_text) {
+  let minX = 0;
+  let maxX = data.length - 1;
+  let minY = 0;
+  let maxY = 10
+  
+  // Calculate the width and height of the graph area
+  let graphWidth = width / 2-50;
+  let graphHeight = height - 100;
+  
+  // Draw x and y axes
+  line(graphWidth + 50, height - 50, graphWidth + 50, 50); // y-axis
+  line(graphWidth+50, height - 50, width - 40, height - 50); // x-axis
+  
+  
+  // Plot data points and connect them with lines
+  let stepX = graphWidth / maxX;
+  let stepY = graphHeight / (maxY - minY);
+  for (let i = data.length; i >=-1; i--) {
+    let x = graphWidth + 50 + i * stepX;
+    let y = height - 50 - (data[i] - minY) * stepY;
+    
+    // Draw data point as a circle
+    textSize(10)
+    text(round(data[i],2),x+6,y+6)
+    circle(x, y, 5);
+    
+    // Connect data points with lines
+    if (i < data.length - 1) {
+      let nextX = graphWidth + 50 + (i + 1) * stepX;
+      let nextY = height - 50 - (data[i + 1] - minY) * stepY;
+      line(x, y, nextX, nextY);
+    }
+  }
+  textSize(20)
+  textAlign(LEFT,BOTTOM)
+  text(the_text,graphWidth+textWidth(the_text),height)
+}
+
+function drawLineGraph_left(data,the_text) {
+  let minX = 0;
+  let maxX = data.length - 1;
+  let minY = 0;
+  let maxY = (Math.max(...data))+2;
+  
+  // Calculate the width and height of the graph area
+  let graphWidth = width / 2-70;
+  let graphHeight = height - 100;
+  
+  // Draw x and y axes
+  line(0 + 50, height - 50, 0 + 50, 50); // y-axis
+  line(50, height - 50, graphWidth , height - 50); // x-axis
+  
+  // Plot data points and connect them with lines
+  let stepX = graphWidth / maxX;
+  let stepY = graphHeight / (maxY - minY);
+  for (let i = data.length; i >=0; i--) {
+    let x = 0 + 50 + i * stepX;
+    let y = height - 50 - (data[i] - minY) * stepY;
+    
+    // Draw data point as a circle
+    textSize(10)
+    text(round(data[i]),x+6,y+6)
+    circle(x, y, 5);
+    
+    // Connect data points with lines
+    if (i < data.length - 1) {
+      let nextX = 0 + 50 + (i + 1) * stepX;
+      let nextY = height - 50 - (data[i + 1] - minY) * stepY;
+      line(x, y, nextX, nextY);
+    }
+  }
+  textSize(20)
+  textAlign(LEFT,BOTTOM)
+  text(the_text,0+textWidth(the_text),height)
+}
 
 
 function changeValues(){
@@ -228,7 +342,7 @@ function spawnBlob() {
     blob.spawny = bloby;
     blob.hunger = 2;
 
-    blob.go = random(4, 6); // speed, cant call it 'move' or 'speed' for some reason
+    blob.go = 5//random(4, 6); // speed, cant call it 'move' or 'speed' for some reason
     blob.sense = sensey
 
     blob.color = (255, 0, 0, 255) // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
@@ -258,7 +372,7 @@ function eatFood() {
 
 function nextDay() {
   if (theFood.length === 0) { // they run outta food
-    doAverage();
+    //doAverage();
     pushData(); // pushes population data into list
     day += 1
     checkHunger(); // checks if blobs still hungry
@@ -350,14 +464,7 @@ function resetBlob() { // put blobs back to where they spawned at end of day
   }
 }
 
-function doAverage(){
-  let average = 0
-  for (let i = theBlobs.length - 1; i >= 0; i--) {
-    average += round(theBlobs[i].go,2)
-  }
-  average = average/ theBlobs.length/1
-  console.log( average );
-}
+
 
 
 function blobReproduce(blob) {
@@ -386,17 +493,17 @@ function blobReproduce(blob) {
 
   new_blob = new Sprite(blobx, bloby, 'k'); // make blob
   new_blob.go = blob.go + random(-1,1);
-  if (blob.go > 10){
-    blob.go =10
+  if (new_blob.go >= 10){
+    new_blob.go =10
   }   
-  if (blob.go < 0){
-    blob.go = 0.1
+  if (new_blob.go <= 0){
+    new_blob.go = 0.1
   }  
   new_blob.spawnx = blobx;
   new_blob.spawny = bloby;
   new_blob.hunger = 2;
   new_blob.sense = sensey
-  new_blob.color = color(blob.go*255,0,0); // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
+  new_blob.color = color(blob.go*25,0,0); // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
   theBlobs.push(new_blob);
 
   //console.log("sex!");
