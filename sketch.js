@@ -26,6 +26,8 @@ let foodamount = 5;
 let blobamount = 5;
 let sensey = 200
 
+let endtext;
+
 
 
 function preload(){
@@ -41,6 +43,8 @@ function preload(){
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  frameRate(50);
 
   button = new Button(windowWidth/2,windowHeight/3*2,200,100,"red","blue", "game1", "title","Start",title_font);//start
   buttonAR.push(button);
@@ -62,11 +66,13 @@ function draw() {
   image(imgGameBackGround, 0, 0, windowWidth, windowHeight);
   buttonsupdate();
   changeValues();
-  if (gamestate === "title"){
+
+  if (gamestate === "title"){ // main menu
     draw_Title_Screen();
     draw_Title();
   }
-  if (gamestate ==="info"){
+
+  if (gamestate ==="info"){ // info screen
     info_screen();
   }
 
@@ -77,11 +83,20 @@ function draw() {
     eatFood(); // checks if blobs and food collided
     spawnnums();
   }
-  if (gamestate === "end"){
+
+  if (gamestate === "end" && theBlobs === []){ // end game screen if extinction
     endscreen();
-    theBlobs = [];
+    theFood = [];
+    endtext === "extinct";
+  }
+
+  if (gamestate === "end"){ // end game screen
+    endscreen();
+    theBlobs = []; // reset
     theFood = [];
   }
+
+  gameEnd() // check if game end
 }
 
 function mousePressed(){
@@ -135,6 +150,9 @@ function display_info(){
   }
   drawLineGraph_right(average_speed,"Average speed")
   drawLineGraph_left(final_pop,"popultaion")
+  if(endtext === "extinct") {
+    text("extinction! :(", windowwidth/2, 10);
+  }
 }
 
 function doAverage(data){
@@ -306,7 +324,7 @@ function buttonsupdate(){ // displays buttons
 
 function spawnFood() { // make food around the place
   for (let i = foodamount; i >= 0; i--) {
-      food = new Sprite(random(400, windowWidth - 400), random(400, windowHeight - 400), 20, 'circle', 'd'); // make food
+      food = new Sprite(random(200, windowWidth - 200), random(200, windowHeight - 200), 20, 'circle', 'd'); // make food
       food.color = 'blue'
       theFood.push(food);
   }
@@ -338,6 +356,7 @@ function spawnBlob() {
     }
 
     blob = new Sprite(blobx, bloby, 'k'); // make blob
+    blob.energy = 30000
     blob.spawnx = blobx;
     blob.spawny = bloby;
     blob.hunger = 2;
@@ -357,26 +376,36 @@ function spawnBlob() {
 function eatFood() {
   for (let i = theBlobs.length - 1; i >= 0; i--) {
       for (let k = theFood.length - 1; k >= 0; k--){
-          if (theBlobs[i].overlaps(theFood[k])) {
-            theFood[k].remove();
+          if (theBlobs[i].overlaps(theFood[k])) { // if blob touches food
+            theFood[k].remove(); // delete food
             theFood.splice(k, 1);
-            theBlobs[i].hunger -= 1;
-            findFood(theBlobs[i]);
+
+            theBlobs[i].hunger -= 1; // reduce hunger
+            findFood(theBlobs[i]); // find new food
+
             theBlobs[i].vel.x === 0;
             theBlobs[i].vel.y === 0;
-            randomMove(theBlobs[i])
+            randomMove(theBlobs[i]) // start randomly moving
           }
       }
   }
 }
 
 function nextDay() {
-  if (theFood.length === 0) { // they run outta food
+  everyonetired = true;
+  for (let i = theBlobs.length - 1; i >= 0; i--) {
+    if(theBlobs[i].energy > 0){
+      everyonetired = false
+    }
+  }
+
+  if (theFood.length === 0 || everyonetired === true) { // they run outta food or get tired
     //doAverage();
     pushData(); // pushes population data into list
     day += 1
     checkHunger(); // checks if blobs still hungry
     resetBlob(); // move to starting positions
+    killFood(); 
     spawnFood();
     
   }
@@ -414,30 +443,41 @@ function findFood(blob) {
 
 function movetoFood() {
   for (let i = theBlobs.length -1; i >= 0; i--) {
+    if(theBlobs[i].energy <= 0){
+      theBlobs[i].vel.x = 0
+      theBlobs[i].vel.y = 0
+      theBlobs[i].color = (0, 0 ,0)
+    }
     fill(200, 200, 200, 100);
     circle(theBlobs[i].x, theBlobs[i].y, theBlobs[i].sense*2);
-    findFood(theBlobs[i]) // find closest blob
-    //console.log(theBlobs[i].target, i)
-    if(theBlobs[i].target !== "nope") {
-      if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
-        //console.log("ass")
-        randomMove(theBlobs[i])
+    theBlobs[i].energy -= theBlobs[i].go * 35;
+
+    if(theBlobs[i].energy >= 0){
+      findFood(theBlobs[i]) // find closest blob
+      if(theBlobs[i].target !== "nope") {
+        if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
+          //console.log("ass")
+          randomMove(theBlobs[i])
+        }
+        theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
+        line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
+        fill(200, 200, 200, 100);
       }
-      theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
-      line(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)
-      fill(200, 200, 200, 100);
     }
+
   }
 }
 
 function randomMove(blob) {
-  let target = {
-    x: random(0, windowWidth),
-    y: random(0, windowHeight)
-  };
-  //console.log(target.x)
-  blob.target = target;
-  blob.targetType = "ran"
+  if(blob.energy >= 0); {
+    let target = {
+      x: random(0, windowWidth),
+      y: random(0, windowHeight)
+    };
+    //console.log(target.x)
+    blob.target = target;
+    blob.targetType = "ran"
+  }
 }
 
 function checkHunger() {
@@ -460,12 +500,18 @@ function resetBlob() { // put blobs back to where they spawned at end of day
     theBlobs[i].vel.x = 0; //stop moving
     theBlobs[i].vel.y = 0;
     theBlobs[i].hunger = 2; // make hungry again
+    theBlobs[i].energy = 30000;
+    theBlobs[i].color = (255, 255, 255)
     randomMove(theBlobs[i])
   }
 }
 
-
-
+function killFood() {
+  for(i = theFood.length -1; i >= 0; i--){
+    theFood[i].remove();
+    theFood.splice(i, 1);
+  }
+}
 
 function blobReproduce(blob) {
   let blobx, bloby;
@@ -530,5 +576,11 @@ function spawnnums(){
     textAlign(LEFT,CENTER)
     textSize(10)
     text(round(theBlobs[i].go,2),theBlobs[i].x+30,theBlobs[i].y)
+  }
+}
+
+function gameEnd(){
+  if(theBlobs === []){
+    gamestate = "end";
   }
 }
