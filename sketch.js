@@ -108,7 +108,7 @@ function mousePressed(){
 function draw_Title(){
   textFont(title_font);
   textSize(50)
-  text("Evolution Simulator", windowWidth/2, 40)
+  text("The Greatest Game on Earth", windowWidth/2, 40)
   textAlign(CENTER,CENTER);
   textSize(30)
   text("By Uday and Ben", windowWidth/2, 80)

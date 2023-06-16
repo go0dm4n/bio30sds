@@ -108,7 +108,7 @@ function mousePressed(){
 function draw_Title(){
   textFont(title_font);
   textSize(50)
-  text("Evolution Simulator", windowWidth/2, 40)
+  text("The Greatest Game on Earth", windowWidth/2, 40)
   textAlign(CENTER,CENTER);
   textSize(30)
   text("By Uday and Ben", windowWidth/2, 80)
@@ -415,9 +415,7 @@ function findFood(blob) {
   let closestfood = "nope";
   for (let k = theFood.length - 1; k >= 0; k--) {
     if (dist(blob.x,blob.y,theFood[k].x,theFood[k].y) <= blob.sense){
-      //console.log("balls")
       if(closestfood === "nope"){
-
         closestfood = theFood[k];
         blob.target= theFood[k];
         blob.targetType = "food"
@@ -450,13 +448,12 @@ function movetoFood() {
     }
     fill(200, 200, 200, 100);
     circle(theBlobs[i].x, theBlobs[i].y, theBlobs[i].sense*2);
-    theBlobs[i].energy -= theBlobs[i].go * 20 + theBlobs[i].sense * 20;
+    theBlobs[i].energy -= theBlobs[i].go * 35;
 
     if(theBlobs[i].energy >= 0){
       findFood(theBlobs[i]) // find closest blob
       if(theBlobs[i].target !== "nope") {
         if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
-          //console.log("ass")
           randomMove(theBlobs[i])
         }
         theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
@@ -474,7 +471,6 @@ function randomMove(blob) {
       x: random(0, windowWidth),
       y: random(0, windowHeight)
     };
-    //console.log(target.x)
     blob.target = target;
     blob.targetType = "ran"
   }
