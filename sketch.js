@@ -1,5 +1,3 @@
-//penis 
-
 // biology 30 sds
 // Uday Sandhu & Ben Strawson
 // March 10th, 2023
@@ -56,8 +54,6 @@ function setup() {
   buttonAR.push(button);
   button = new Button(windowWidth/3*2,windowHeight/5*4,50,50,"red","blue","-food","title","-",basic_font);//
   buttonAR.push(button);
-  button = new Button(windowWidth-60, windowHeight-60,60,60,"blue","red","info","title","i",basic_font);
-  buttonAR.push(button);
   button = new Button(windowWidth-60, windowHeight-90,90,90,"blue","red","end","game","stop",basic_font);
   buttonAR.push(button);
 }
@@ -70,10 +66,6 @@ function draw() {
   if (gamestate === "title"){ // main menu
     draw_Title_Screen();
     draw_Title();
-  }
-
-  if (gamestate ==="info"){ // info screen
-    info_screen();
   }
 
   if (gamestate === "game"){
@@ -124,12 +116,6 @@ function draw_Title_Screen(){
   image(evo,windowWidth-evo.width,0);
 }
 
-function info_screen(){
-  textSize(20)
-  for (let i = 0; i < textData.length; i++) {
-    text(textData[i], width / 2, 20 + (i * 30));
-  }
-}
 
 function endscreen(){
   for (let i = theBlobs.length - 1; i >= 0; i--) {
@@ -386,6 +372,12 @@ function eatFood() {
             theBlobs[i].vel.x === 0;
             theBlobs[i].vel.y === 0;
             randomMove(theBlobs[i]) // start randomly moving
+            for (let i = theBlobs.length -1; i >= 0; i--) {
+              findFood(theBlobs[i]);
+              if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
+                randomMove(theBlobs[i])
+              }
+            }
           }
       }
   }
@@ -415,7 +407,6 @@ function findFood(blob) {
   let closestfood = "nope";
   for (let k = theFood.length - 1; k >= 0; k--) {
     if (dist(blob.x,blob.y,theFood[k].x,theFood[k].y) <= blob.sense){
-      //console.log("balls")
       if(closestfood === "nope"){
 
         closestfood = theFood[k];
@@ -429,15 +420,6 @@ function findFood(blob) {
         blob.targetType = "food"
       }
     }
- 
-
-      
-
-
-      // if(dist(blob.x, blob.y, theFood[k].x, theFood[k].y) < dist(blob.x, blob.y, closestfood.x, closestfood.y) 
-      // && dist(blob.x, blob.y, closestfood.x, closestfood.y) <= blob.sense) {
-      //   closestfood = theFood[k];
-    
   }
 }
 
@@ -456,7 +438,6 @@ function movetoFood() {
       findFood(theBlobs[i]) // find closest blob
       if(theBlobs[i].target !== "nope") {
         if(dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y) <= theBlobs[i].go && theBlobs[i].targetType !== "food"){
-          //console.log("ass")
           randomMove(theBlobs[i])
         }
         theBlobs[i].moveTowards(theBlobs[i].target, theBlobs[i].go / dist(theBlobs[i].x, theBlobs[i].y, theBlobs[i].target.x, theBlobs[i].target.y)); // move towards closest blob
@@ -551,8 +532,6 @@ function blobReproduce(blob) {
   new_blob.sense = sensey
   new_blob.color = color(blob.go*25,0,0); // speed, sense, size? REMOVE THIS IF WE DONT IMPLEMENT THOSE
   theBlobs.push(new_blob);
-
-  //console.log("sex!");
 }
 
 function drawUI() { // draws misc game stuff
